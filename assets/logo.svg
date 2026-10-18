@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">VioletTech logo</title>
+  <defs><linearGradient id="violet" x1="15%" y1="10%" x2="85%" y2="90%"><stop offset="0" stop-color="#bd8cff"/><stop offset=".55" stop-color="#8548d5"/><stop offset="1" stop-color="#54218f"/></linearGradient></defs>
+  <path d="M9 17h30l25 54 25-54h30L70 111H57z" fill="url(#violet)"/>
+  <path d="M31 17h19L65 48 80 17h19L68 78h-7z" fill="#d7b7ff" opacity=".75"/>
+</svg>
