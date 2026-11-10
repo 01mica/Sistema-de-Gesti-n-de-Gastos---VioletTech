@@ -1,68 +1,57 @@
 # VioletTech — Sistema de Gestión de Gastos
 
-Prototipo académico del MVP del Sprint 2, desarrollado con HTML5, CSS3 y JavaScript. Los datos de prueba se guardan localmente en el navegador mediante `localStorage`.
+Prototipo académico desarrollado con HTML, CSS y JavaScript. Conserva el núcleo original del MVP y agrega reglas de negocio para separar el acceso por rol y sede. La información se guarda en `localStorage` del navegador.
 
-## Funcionalidades
+## Roles y permisos
 
-- Registro de una cuenta y redirección al inicio de sesión al finalizar.
-- Inicio de sesión con usuario o email y contraseña.
-- Flujo local de recuperación: usuario/email, nueva contraseña y confirmación.
-- Reglas de contraseña visualizadas en tiempo real: mínimo de 8 caracteres, mayúscula, minúscula, número y carácter especial.
-- Mostrar/ocultar contraseña mediante el icono de ojo.
-- Dashboard, lista de movimientos, búsqueda, filtro por tipo y formulario separado para ingresar ingresos y egresos.
-- Validaciones de monto, categoría y fecha no posterior al día actual.
-- Confirmaciones, mensajes de error y persistencia de los movimientos.
-- Modo claro (blanco/lila) y modo oscuro (negro/violeta), con preferencia conservada localmente.
-- Diseño adaptable a computadoras y pantallas móviles.
+- **Administradora:** única cuenta con acceso a las tres sedes, selector de clínicas, métricas y balances, auditoría, actualización de estados y observaciones.
+- **Encargada:** puede registrar ingresos y egresos en su sede, adjuntar comprobantes y descargar el informe PDF de los movimientos de esa sede.
+- **Médico:** puede consultar en modo lectura únicamente los movimientos de su sede.
+
+En el registro se elige el rol. Para Encargada y Médico, la sede es obligatoria. Solo puede existir una cuenta Administradora; el formulario muestra una aclaración y bloquea un segundo registro con ese rol.
+
+## Funcionalidades agregadas
+
+- Selector de Sede 1, Sede 2 y Sede 3 para la Administradora.
+- Navegación a pantallas secundarias de Clínicas, Métricas y balances, y Auditoría.
+- Filtro de métricas por fechas y sede, tarjetas de ingresos/egresos/balance, distribución por categoría y tendencia mensual.
+- Carga opcional de comprobantes JPG, PNG, WEBP, GIF o PDF, con límite de 2 MB, vista previa y descarga desde cada movimiento.
+- Flujo de estados **Cargado → En revisión → Validado**, editable solo por la Administradora.
+- Observaciones internas e historial de acciones con usuario, fecha y hora.
+- Exportación imprimible del informe, que permite elegir “Guardar como PDF” en el navegador.
+- Compatibilidad de pantallas secundarias y visor con los temas claro y oscuro. El botón para mostrar contraseña permanece visible.
 
 ## Ejecutar con Visual Studio Code
 
-1. Descomprimí el ZIP y abrí la carpeta `violettech-prototipo` en Visual Studio Code (**Archivo → Abrir carpeta…**).
-2. Instalá la extensión **Live Server** si todavía no la tenés.
-3. Abrí `index.html`, hacé clic derecho y seleccioná **Open with Live Server**.
-4. El navegador abrirá una dirección local similar a `http://127.0.0.1:5500`.
+1. Descomprimí el ZIP y abrí la carpeta `SGG-VioletTech` en Visual Studio Code.
+2. Abrí `index.html` con Live Server (o serví la carpeta desde un servidor local).
+3. Registrá la primera cuenta como Administradora. Luego registrá Encargadas y Médicos asignándoles una sede.
+4. Iniciá sesión con cada cuenta para comprobar que aparezcan únicamente sus opciones.
 
-## Probar el recorrido
+## Recorrido de prueba recomendado
 
-1. Entrá a **Registrate**, completá nombre de usuario, email y contraseña válida.
-2. Al registrarte, la aplicación volverá a **Iniciar sesión** y dejará el email cargado. Ingresá la contraseña para entrar.
-3. En la pantalla principal, pulsá **Registrar movimiento**, elegí ingreso o egreso y completá los datos obligatorios.
-4. Comprobá el mensaje de guardado y que el registro aparezca en la lista.
-5. Recargá el navegador y verificá que la sesión local y los movimientos continúen disponibles.
-6. Probá **¿Olvidaste tu contraseña?** con una cuenta que hayas registrado; ingresá usuario/email, una contraseña nueva válida y la confirmación. Después volvé al inicio de sesión y entrá con la contraseña nueva.
-7. Cambiá el tema claro/oscuro y usá la búsqueda/filtro en Movimientos.
+1. Registrá una cuenta Administradora y comprobá que el formulario muestre que no se permite una segunda.
+2. Registrá una Encargada de Sede 1 y un Médico de Sede 1.
+3. Ingresá como Encargada, cargá un ingreso y un egreso; en uno adjuntá un comprobante.
+4. Descargá el comprobante y el informe PDF desde Movimientos.
+5. Ingresá como Médico y confirmá que vea los movimientos de Sede 1, sin botones para registrar o editar.
+6. Volvé a ingresar como Administradora, elegí Sede 1, revisá Métricas y balances y actualizá un estado desde Auditoría.
+7. Agregá una observación y comprobá que quede en el historial.
+8. Cambiá entre tema claro y oscuro y revisá las pantallas secundarias y el visor.
 
-## Limitaciones importantes
+## Limitaciones del prototipo
 
-Este es un prototipo estático, no una autenticación de producción. La recuperación de contraseña se simula en el navegador y no envía email ni verifica la identidad de quien solicita el cambio. `localStorage` no es un almacenamiento seguro para credenciales y los datos no se sincronizan entre dispositivos. No uses contraseñas reales ni información sensible. La aplicación no utiliza SQLite, backend ni necesita publicarse en Internet para la demostración.
-
-## Subir el código a GitHub
-
-1. Creá en GitHub un repositorio vacío, por ejemplo `violettech-sistema-gastos`.
-2. Abrí **Terminal → Nueva terminal** en Visual Studio Code desde la carpeta del proyecto.
-3. Si es un repositorio nuevo, ejecutá estos comandos y reemplazá `USUARIO` por tu nombre real de GitHub:
-
-```bash
-git init
-git add .
-git commit -m "MVP VioletTech: autenticacion y movimientos"
-git branch -M main
-git remote add origin https://github.com/USUARIO/violettech-sistema-gastos.git
-git push -u origin main
-```
-
-Si la carpeta ya está conectada a un repositorio, no repitas `git init` ni `git remote add origin`; usá `git add .`, `git commit -m "Actualiza flujo de autenticacion"` y `git push`.
+Los roles y permisos se aplican en la interfaz y en la lógica JavaScript, pero no son seguridad real: los usuarios y movimientos se guardan en `localStorage`, no se sincronizan entre dispositivos y pueden ser modificados desde las herramientas del navegador. No uses datos personales, credenciales reales ni información clínica o financiera sensible. La vista previa de PDF utiliza el visor PDF integrado del navegador, cuyo contenido interno puede conservar el estilo propio del navegador aunque el marco de VioletTech respete el tema.
 
 ## Estructura
 
 ```text
-violettech-prototipo/
+SGG-VioletTech/
 ├── index.html
 ├── styles.css
 ├── app.js
+├── business-rules.js
 ├── README.md
 └── assets/
     └── logo.svg
 ```
-# Sistema-de-Gesti-n-de-Gastos---VioletTech
-Prototipo funcional del Sistema de Gestión de Gastos - Equipo VioletTech (grupo 3)

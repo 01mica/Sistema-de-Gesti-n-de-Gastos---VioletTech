@@ -9,6 +9,7 @@
   <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
   <script src="app.js" defer></script>
+  <script src="business-rules.js" defer></script>
 </head>
 <body data-theme="light">
   <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
@@ -74,6 +75,14 @@
             <div class="input-wrap"><span class="input-icon" aria-hidden="true">♙</span><input id="registerName" name="name" type="text" autocomplete="username" placeholder="Ej. nombre.apellido" minlength="2" required></div>
             <label class="field-label" for="registerEmail">Email</label>
             <div class="input-wrap"><span class="input-icon" aria-hidden="true">✉</span><input id="registerEmail" name="email" type="email" autocomplete="email" placeholder="nombre@correo.com" required></div>
+            <label class="field-label" for="registerRole">Rol de la cuenta <span class="required-star">*</span></label>
+            <div class="input-wrap role-select-wrap"><span class="input-icon" aria-hidden="true">▤</span><select id="registerRole" name="role" required><option value="">Seleccioná un rol</option><option value="admin">Administradora</option><option value="loader">Encargada</option><option value="doctor">Médico</option></select></div>
+            <small id="adminRoleHint" class="role-hint">La primera cuenta debe registrarse como Administradora. Después se podrán crear cuentas de Encargada y Médico; solo se admite una Administradora.</small>
+            <div id="registerClinicWrap" class="form-field register-clinic-field" hidden>
+              <label class="field-label" for="registerClinic">Sede asignada <span class="required-star">*</span></label>
+              <select id="registerClinic" name="clinic"><option value="">Seleccioná una sede</option><option value="sede-1">Sede 1</option><option value="sede-2">Sede 2</option><option value="sede-3">Sede 3</option></select>
+              <small class="field-hint">La cuenta solo podrá consultar o registrar movimientos en esta sede, según su rol.</small>
+            </div>
             <label class="field-label" for="registerPassword">Contraseña</label>
             <div class="input-wrap"><span class="input-icon" aria-hidden="true">♙</span><input id="registerPassword" name="password" type="password" autocomplete="new-password" placeholder="Creá una contraseña" required><button class="input-action" type="button" data-toggle-password="registerPassword" aria-label="Mostrar contraseña" title="Mostrar contraseña"><svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.7"/><path class="eye-slash" d="M4 4 20 20"/></svg></button></div>
             <div id="passwordRules" class="password-rules" aria-live="polite">
@@ -127,8 +136,12 @@
       <a href="#inicio" class="sidebar-brand" data-route="home" aria-label="VioletTech, inicio"><img src="assets/logo.svg" alt=""><span><strong>VioletTech</strong><small>Sistema de Gestión de Gastos</small></span></a>
       <div class="sidebar-caption">MENÚ PRINCIPAL</div>
       <nav class="side-nav" aria-label="Navegación principal">
-        <button type="button" class="nav-item active" data-route="home"><span class="nav-glyph">⌂</span> Inicio</button>
-        <button type="button" class="nav-item" data-route="movements"><span class="nav-glyph">＋</span> Movimientos</button>
+        <button type="button" class="nav-item active" data-route="home" data-role-visible="admin"><span class="nav-glyph">⌂</span> Inicio</button>
+        <button type="button" class="nav-item" data-extension-route="clinics" data-role-visible="admin"><span class="nav-glyph">▦</span> Clínicas</button>
+        <button type="button" class="nav-item" data-route="movements"><span class="nav-glyph">≡</span> Movimientos</button>
+        <button type="button" class="nav-item" data-extension-action="new-movement" data-role-visible="loader"><span class="nav-glyph">＋</span> Registrar movimiento</button>
+        <button type="button" class="nav-item" data-extension-route="reports" data-role-visible="admin"><span class="nav-glyph">▥</span> Métricas y balances</button>
+        <button type="button" class="nav-item" data-extension-route="audit" data-role-visible="admin"><span class="nav-glyph">◷</span> Auditoría</button>
       </nav>
       <div class="sidebar-bottom">
         <div class="profile-mini"><div class="avatar" id="sidebarAvatar">V</div><div class="profile-text"><strong id="sidebarName">Usuario</strong><small id="sidebarEmail">usuario@correo.com</small></div></div>
@@ -140,7 +153,7 @@
       <header class="topbar">
         <button type="button" class="mobile-menu-button" id="mobileMenuButton" aria-label="Abrir menú">☰</button>
         <div class="breadcrumb"><span>VioletTech</span><span class="breadcrumb-slash">/</span><strong id="topbarTitle">Inicio</strong></div>
-        <div class="topbar-actions"><button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema"><span id="themeIcon">☼</span><span class="theme-label">Tema</span></button><div class="topbar-avatar" id="topbarAvatar">V</div></div>
+        <div class="topbar-actions"><span class="role-badge" id="activeRoleLabel">Cuenta</span><button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema" title="Cambiar tema"><span id="themeIcon">☼</span><span class="theme-label">Tema</span></button><div class="topbar-avatar" id="topbarAvatar">V</div></div>
       </header>
 
       <main class="content-area">
@@ -150,12 +163,18 @@
             <div class="welcome-copy"><span class="welcome-badge">VioletTech · Finanzas</span><h2>Organizá tus movimientos<br>de forma simple.</h2><p>Registrá tus ingresos y egresos y encontralos cuando los necesites.</p><button class="button button-light" type="button" data-action="new-movement"><span>＋</span> Registrar movimiento</button></div>
             <div class="welcome-art" aria-hidden="true"><div class="art-circle"></div><svg viewBox="0 0 180 180"><rect x="35" y="20" width="105" height="137" rx="13" fill="none" stroke="currentColor" stroke-width="6"/><path d="M60 53h55M60 73h55M60 93h27M60 122h55" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><circle cx="126" cy="127" r="24" fill="var(--art-accent)" stroke="currentColor" stroke-width="4"/><path d="M115 127l8 8 15-18" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           </section>
-          <div class="section-heading"><div><h2>Movimientos recientes</h2><p class="muted">Tus últimas operaciones registradas.</p></div><button type="button" class="button button-ghost" data-route="movements">Ver todos <span aria-hidden="true">→</span></button></div>
+          <section id="adminHomeClinics" class="clinic-picker-block" data-role-visible="admin">
+            <div class="section-heading"><div><h2>Elegir clínica</h2><p class="muted">Seleccioná una sede para consultar sus movimientos.</p></div></div>
+            <div id="homeClinicCards" class="clinic-card-grid"></div>
+            <button type="button" class="button button-secondary all-clinics-button" data-select-clinic="all">Ver movimientos de todas las sedes</button>
+          </section>
+          <div class="section-heading"><div><h2>Movimientos recientes</h2><p class="muted" id="recentMovementsCaption">Últimas operaciones registradas.</p></div><button type="button" class="button button-ghost" data-route="movements">Ver todos <span aria-hidden="true">→</span></button></div>
           <div id="recentMovements" class="table-card"></div>
         </section>
 
         <section id="movementsPage" class="page-section" hidden>
-          <div class="page-heading page-heading-row"><div><p class="eyebrow">REGISTROS</p><h1>Movimientos</h1><p class="muted">Consultá y buscá tus ingresos y egresos.</p></div><button class="button button-primary" type="button" data-action="new-movement"><span>＋</span> Registrar movimiento</button></div>
+          <div class="page-heading page-heading-row"><div><p class="eyebrow">REGISTROS</p><h1 id="movementsHeading">Movimientos</h1><p class="muted" id="movementsSubtitle">Consultá y buscá los ingresos y egresos de tu sede.</p></div><div class="movement-page-actions"><button class="button button-secondary" type="button" id="clinicExitButton" hidden>← Salir de esta clínica</button><button class="button button-secondary" type="button" id="movementsPdfButton">⇩ Descargar PDF</button><button class="button button-primary" type="button" id="movementRegisterButton" data-action="new-movement"><span>＋</span> Registrar movimiento</button></div></div>
+          <div id="currentClinicBanner" class="current-clinic-banner" hidden></div>
           <div class="filter-bar"><label class="search-field"><span aria-hidden="true">⌕</span><input id="movementSearch" type="search" placeholder="Buscar por descripción, categoría o fecha…" aria-label="Buscar movimientos"></label><select id="typeFilter" aria-label="Filtrar por tipo"><option value="all">Todos los movimientos</option><option value="Ingreso">Ingresos</option><option value="Egreso">Egresos</option></select></div>
           <div id="allMovements" class="table-card"></div>
         </section>
@@ -172,14 +191,77 @@
                 <div class="form-field"><label class="field-label" for="movementDate">Fecha <span class="required-star">*</span></label><input id="movementDate" name="date" type="date" required><small class="field-hint">No puede ser posterior al día de hoy.</small><p class="field-error" id="dateError"></p></div>
                 <div class="form-field form-field-full"><label class="field-label" for="movementDetails">Detalle <span class="optional-label">(opcional)</span></label><textarea id="movementDetails" name="details" rows="3" maxlength="180" placeholder="Agregá una descripción del movimiento…"></textarea><div class="field-footer"><small class="field-hint">Podés agregar información para identificarlo fácilmente.</small><small id="detailsCounter" class="field-hint">0/180</small></div></div>
               </div>
+              <div class="form-grid business-form-fields">
+                <div class="form-field" id="adminMovementClinicWrap" hidden>
+                  <label class="field-label" for="movementClinic">Clínica / sede <span class="required-star">*</span></label>
+                  <select id="movementClinic" name="clinic"><option value="">Seleccionar sede</option><option value="sede-1">Sede 1</option><option value="sede-2">Sede 2</option><option value="sede-3">Sede 3</option></select>
+                  <p class="field-error" id="clinicError"></p>
+                </div>
+                <div class="form-field" id="assignedClinicWrap" hidden>
+                  <label class="field-label">Sede asignada</label>
+                  <div id="assignedClinicValue" class="readonly-field">Sede 1</div>
+                  <small class="field-hint">La sede se obtiene de tu cuenta y no se puede modificar.</small>
+                </div>
+                <div class="form-field form-field-full">
+                  <span class="field-label">¿Deseás adjuntar un comprobante?</span>
+                  <div class="receipt-choice">
+                    <label><input type="radio" name="receiptChoice" value="no" checked> No</label>
+                    <label><input type="radio" name="receiptChoice" value="yes"> Sí</label>
+                  </div>
+                  <div id="receiptUploadWrap" class="receipt-upload-wrap" hidden>
+                    <label class="field-label" for="movementReceipt">Seleccionar comprobante</label>
+                    <input id="movementReceipt" name="receipt" type="file" accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,image/jpeg,image/png,image/webp,image/gif,application/pdf">
+                    <small class="field-hint">Formatos permitidos: JPG, PNG, WEBP, GIF o PDF. Tamaño máximo: 2 MB.</small>
+                    <p class="field-error" id="receiptError"></p>
+                  </div>
+                </div>
+              </div>
               <p id="movementFormError" class="form-error" role="alert"></p>
               <div class="form-actions"><button class="button button-secondary" type="button" data-action="cancel-movement">Cancelar</button><button class="button button-primary" type="submit"><span>✓</span> Guardar movimiento</button></div>
             </form>
           </div>
           <p class="privacy-note"><span aria-hidden="true">ⓘ</span> Este prototipo guarda los registros localmente en este navegador.</p>
         </section>
+
+        <section id="clinicsPage" class="page-section business-page" hidden>
+          <div class="page-heading"><div><p class="eyebrow">SEDES DISPONIBLES</p><h1>Clínicas</h1><p class="muted">Elegí una clínica para abrir su espacio de movimientos.</p></div></div>
+          <div id="clinicPageCards" class="clinic-card-grid"></div>
+          <div class="clinic-all-row"><button type="button" class="button button-secondary" data-select-clinic="all">Ver movimientos de todas las sedes</button></div>
+        </section>
+
+        <section id="reportsPage" class="page-section business-page" hidden>
+          <div class="page-heading page-heading-row"><div><p class="eyebrow">MÉTRICAS Y BALANCES</p><h1>Métricas y balances</h1><p class="muted">Indicadores calculados a partir de los movimientos registrados.</p></div><button class="button button-secondary" type="button" id="reportsPdfButton">⇩ Descargar informe</button></div>
+          <div class="report-filters">
+            <div class="form-field"><label class="field-label" for="reportDateFrom">Desde</label><input id="reportDateFrom" type="date"></div>
+            <div class="form-field"><label class="field-label" for="reportDateTo">Hasta</label><input id="reportDateTo" type="date"></div>
+            <div class="form-field"><label class="field-label" for="reportClinicFilter">Clínica / sede</label><select id="reportClinicFilter"><option value="all">Todas las sedes</option><option value="sede-1">Sede 1</option><option value="sede-2">Sede 2</option><option value="sede-3">Sede 3</option></select></div>
+            <button class="button button-secondary report-reset" type="button" id="resetReportFilters">Restablecer</button>
+          </div>
+          <div class="metrics-grid">
+            <article class="metric-card"><span>Ingresos</span><strong id="metricIncome">$ 0</strong><small>En el período seleccionado</small></article>
+            <article class="metric-card"><span>Egresos</span><strong id="metricExpense">$ 0</strong><small>En el período seleccionado</small></article>
+            <article class="metric-card metric-balance"><span>Balance</span><strong id="metricBalance">$ 0</strong><small id="metricBalanceHint">Ingresos menos egresos</small></article>
+          </div>
+          <section class="extension-card chart-card"><div class="section-heading"><div><h2>Distribución de gastos por rubro</h2><p class="muted">Los importes se actualizan según los filtros elegidos.</p></div></div><div id="expenseChart" class="expense-chart"></div></section>
+          <section class="extension-card trend-card"><div class="section-heading"><div><h2>Ingresos y egresos por mes</h2><p class="muted">Comparación de los movimientos del período.</p></div></div><div id="monthlyTrend" class="monthly-trend"></div></section>
+        </section>
+
+        <section id="auditPage" class="page-section business-page" hidden>
+          <div class="page-heading"><div><p class="eyebrow">CONTROL INTERNO</p><h1>Auditoría y revisión</h1><p class="muted">Revisá los movimientos, su trazabilidad y actualizá sus estados.</p></div></div>
+          <div class="audit-intro-card"><strong>Flujo de revisión</strong><span>Cargado</span><i>→</i><span>En revisión</span><i>→</i><span>Validado</span></div>
+          <div id="auditMovements" class="audit-movement-list"></div>
+          <section class="extension-card audit-log-card"><div class="section-heading"><div><h2>Historial de acciones</h2><p class="muted">Registro de usuarios, acciones y fechas.</p></div></div><div id="auditLogTable" class="table-card"></div></section>
+        </section>
       </main>
       <footer class="app-footer"><span>VioletTech · Sistema de Gestión de Gastos</span><span>Prototipo académico</span></footer>
+    </div>
+  </div>
+
+  <div id="receiptModal" class="receipt-modal" hidden role="dialog" aria-modal="true" aria-labelledby="receiptModalTitle">
+    <div class="receipt-modal-card">
+      <div class="receipt-modal-head"><div><p class="eyebrow">ARCHIVO ADJUNTO</p><h2 id="receiptModalTitle">Comprobante</h2></div><button type="button" class="icon-close" id="closeReceiptModal" aria-label="Cerrar visor">×</button></div>
+      <div id="receiptPreview" class="receipt-preview"></div>
+      <div class="receipt-modal-actions"><a id="receiptDownloadLink" class="button button-primary" href="#" download>Descargar comprobante</a></div>
     </div>
   </div>
 </body>
